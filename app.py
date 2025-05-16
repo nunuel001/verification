@@ -1,47 +1,62 @@
 import streamlit as st
 import pandas as pd
-import speech_recognition as sr
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Vérification Invités", page_icon="✅", layout="centered")
+st.set_page_config(page_title="Vérification Invités", layout="centered")
+st.title("🎤 Vérification vocale des invités")
 
-st.title("🎤 Vérification des invités par la voix")
-
-uploaded_file = st.file_uploader("📁 Téléversez votre fichier CSV d'invités", type=["csv"])
+# 1. Upload de la liste
+uploaded_file = st.file_uploader("📁 Téléversez le fichier CSV avec les noms des invités", type=["csv"])
 
 if uploaded_file is not None:
-    try:
-        df = pd.read_csv(uploaded_file)
-        st.success("✅ Liste chargée avec succès.")
-        st.dataframe(df.head())
-    except Exception as e:
-        st.error(f"Erreur de chargement : {e}")
-        st.stop()
+    df = pd.read_csv(uploaded_file)
+    st.success("✅ Liste chargée. Vous pouvez utiliser la reconnaissance vocale ci-dessous.")
 else:
-    st.warning("Veuillez téléverser une liste avant de continuer.")
+    st.warning("Veuillez téléverser un fichier CSV.")
     st.stop()
 
-recognizer = sr.Recognizer()
+# 2. Zone d'affichage du résultat
+st.markdown("### 🧠 Nom reconnu par la voix")
+nom_reconnu = st.text_input("Nom reconnu :", key="nom_vocal")
 
-def reconnaitre_nom():
-    with sr.Microphone() as source:
-        st.info("🎙️ Parlez maintenant...")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source, phrase_time_limit=5)
-    try:
-        nom = recognizer.recognize_google(audio, language="fr-FR")
-        return nom
-    except:
-        return None
+# 3. Vérification dans la liste
+if nom_reconnu:
+    noms_bdd = df["Nom"].str.lower().str.strip()
+    if nom_reconnu.lower().strip() in noms_bdd.values:
+        st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
+    else:
+        st.error(f"❌ {nom_reconnu} n'a pas été trouvé.")
 
-if st.button("🔍 Parler pour vérifier"):
-    with st.spinner("Écoute..."):
-        nom = reconnaitre_nom()
-        if nom:
-            st.write(f"🗣️ Vous avez dit : **{nom}**")
-            noms_invites = df['Nom'].str.lower().str.strip()
-            if nom.lower().strip() in noms_invites.values:
-                st.success(f"✅ {nom} est invité.")
-            else:
-                st.error(f"❌ {nom} n'est pas dans la liste.")
-        else:
-            st.warning("Nom non reconnu. Veuillez réessayer.")
+# 4. Composant JS pour la reconnaissance vocale
+st.markdown("### 🎙️ Appuyez sur le bouton pour parler")
+
+components.html(
+    """
+    <button onclick="startRecognition()" style="padding: 10px 20px; font-size: 18px;">🎤 Parler</button>
+    <p id="result" style="font-size: 18px; font-weight: bold;"></p>
+    
+    <script>
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "fr-FR";
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            
+            recognition.start();
+            recognition.onresult = function(event) {
+                const nom = event.results[0][0].transcript;
+                document.getElementById("result").innerText = "Nom reconnu : " + nom;
+
+                const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+                if (streamlitInput) {
+                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+                    nativeInputValueSetter.call(streamlitInput, nom);
+                    streamlitInput.dispatchEvent(new Event("input", { bubbles: true }));
+                }
+            };
+        }
+    </script>
+    """,
+    height=200,
+)
+
