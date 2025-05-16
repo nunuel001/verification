@@ -1,18 +1,33 @@
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
+import os
 
 st.set_page_config(page_title="Vérification Invités", layout="centered")
 st.title("🎤 Vérification vocale des invités")
 
 # 1. Upload de la liste
-uploaded_file = st.file_uploader("📁 Téléversez le fichier CSV avec les noms des invités", type=["csv"])
+uploaded_file = st.file_uploader("📁 Téléversez le fichier des invités (.csv ou .xlsx)", type=["csv", "xlsx"])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    st.success("✅ Liste chargée. Vous pouvez utiliser la reconnaissance vocale ci-dessous.")
+    filename = uploaded_file.name
+    extension = os.path.splitext(filename)[1]
+
+    try:
+        if extension == ".csv":
+            df = pd.read_csv(uploaded_file)
+        elif extension in [".xlsx", ".xls"]:
+            df = pd.read_excel(uploaded_file)
+        else:
+            st.error("❌ Format de fichier non pris en charge.")
+            st.stop()
+        
+        st.success("✅ Liste chargée. Vous pouvez utiliser la reconnaissance vocale ci-dessous.")
+    except Exception as e:
+        st.error(f"Erreur de lecture du fichier : {e}")
+        st.stop()
 else:
-    st.warning("Veuillez téléverser un fichier CSV.")
+    st.warning("Veuillez téléverser un fichier CSV ou Excel.")
     st.stop()
 
 # 2. Zone d'affichage du résultat
@@ -59,4 +74,3 @@ components.html(
     """,
     height=200,
 )
-
