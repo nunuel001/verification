@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
@@ -23,6 +24,11 @@ if uploaded_file is not None:
             st.stop()
         
         st.success("✅ Liste chargée. Vous pouvez utiliser la reconnaissance vocale ci-dessous.")
+
+        if 'Nom' not in df.columns:
+            st.error("❌ Le fichier ne contient pas de colonne intitulée exactement 'Nom'. Veuillez corriger votre fichier.")
+            st.stop()
+
     except Exception as e:
         st.error(f"Erreur de lecture du fichier : {e}")
         st.stop()
@@ -34,13 +40,16 @@ else:
 st.markdown("### 🧠 Nom reconnu par la voix")
 nom_reconnu = st.text_input("Nom reconnu :", key="nom_vocal")
 
-# 3. Vérification dans la liste
-if nom_reconnu:
-    noms_bdd = df["Nom"].str.lower().str.strip()
-    if nom_reconnu.lower().strip() in noms_bdd.values:
-        st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
+# 3. Bouton de validation manuelle
+if st.button("Vérifier ce nom"):
+    if nom_reconnu:
+        noms_bdd = df["Nom"].str.lower().str.strip()
+        if nom_reconnu.lower().strip() in noms_bdd.values:
+            st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
+        else:
+            st.error(f"❌ {nom_reconnu} n'a pas été trouvé.")
     else:
-        st.error(f"❌ {nom_reconnu} n'a pas été trouvé.")
+        st.warning("Aucun nom n'a été reconnu.")
 
 # 4. Composant JS pour la reconnaissance vocale
 st.markdown("### 🎙️ Appuyez sur le bouton pour parler")
