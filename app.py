@@ -5,11 +5,13 @@ import streamlit.components.v1 as components
 import os
 
 st.set_page_config(page_title="Vérification Invités", layout="centered")
-st.title("🎤 Vérification vocale des invités")
+st.markdown("<h1 style='text-align: center;'>🎤 Vérification vocale des invités</h1>", unsafe_allow_html=True)
 
-# 1. Upload de la liste
-uploaded_file = st.file_uploader("📁 Téléversez le fichier des invités (.csv ou .xlsx)", type=["csv", "xlsx"])
+# Section upload
+with st.expander("📂 Téléversement de la liste des invités (.csv ou .xlsx)"):
+    uploaded_file = st.file_uploader("Chargez votre fichier", type=["csv", "xlsx"])
 
+# Chargement du fichier
 if uploaded_file is not None:
     filename = uploaded_file.name
     extension = os.path.splitext(filename)[1]
@@ -22,61 +24,60 @@ if uploaded_file is not None:
         else:
             st.error("❌ Format de fichier non pris en charge.")
             st.stop()
-        
-        st.success("✅ Liste chargée. Vous pouvez utiliser la reconnaissance vocale ci-dessous.")
+
+        st.success("✅ Liste chargée. Utilisez le micro pour vérifier les invités.")
 
         if 'Nom' not in df.columns:
-            st.error("❌ Le fichier ne contient pas de colonne intitulée exactement 'Nom'. Veuillez corriger votre fichier.")
+            st.error("❌ Le fichier doit contenir une colonne intitulée exactement 'Nom'.")
             st.stop()
 
     except Exception as e:
-        st.error(f"Erreur de lecture du fichier : {e}")
+        st.error(f"Erreur de lecture : {e}")
         st.stop()
 else:
-    st.warning("Veuillez téléverser un fichier CSV ou Excel.")
+    st.info("💡 Veuillez d'abord téléverser une liste d'invités.")
     st.stop()
 
-# 2. Zone d'affichage du résultat
-st.markdown("### 🧠 Nom reconnu par la voix")
+# Affichage du champ vocal
+st.markdown("## 🧠 Nom détecté par la voix")
 nom_reconnu = st.text_input("Nom reconnu :", key="nom_vocal")
 
-# 3. Bouton de validation manuelle
-if st.button("Vérifier ce nom"):
-    if nom_reconnu:
-        noms_bdd = df["Nom"].str.lower().str.strip()
-        if nom_reconnu.lower().strip() in noms_bdd.values:
-            st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
-        else:
-            st.error(f"❌ {nom_reconnu} n'a pas été trouvé.")
+# Vérification automatique
+if nom_reconnu:
+    noms_bdd = df["Nom"].str.lower().str.strip()
+    if nom_reconnu.lower().strip() in noms_bdd.values:
+        st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
     else:
-        st.warning("Aucun nom n'a été reconnu.")
+        st.error(f"❌ {nom_reconnu} n'est pas sur la liste.")
 
-# 4. Composant JS pour la reconnaissance vocale
-st.markdown("### 🎙️ Appuyez sur le bouton pour parler")
+# Bouton vocal
+st.markdown("## 🎙️ Cliquez sur le bouton pour parler")
 
 components.html(
     """
-    <button onclick="startRecognition()" style="padding: 10px 20px; font-size: 18px;">🎤 Parler</button>
-    <p id="result" style="font-size: 18px; font-weight: bold;"></p>
-    
+    <button onclick="startRecognition()" style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none;">
+        🎤 Parler
+    </button>
+    <p id="result" style="font-size: 16px; font-weight: bold; color: #333;"></p>
+
     <script>
         function startRecognition() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = "fr-FR";
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
-            
+
             recognition.start();
             recognition.onresult = function(event) {
                 const nom = event.results[0][0].transcript;
                 document.getElementById("result").innerText = "Nom reconnu : " + nom;
 
-                const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-                if (streamlitInput) {
-                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-                    nativeInputValueSetter.call(streamlitInput, nom);
-                    streamlitInput.dispatchEvent(new Event("input", { bubbles: true }));
-                }
+                const iframe = window.parent.document;
+                const inputs = iframe.querySelectorAll('input[type="text"]');
+                inputs.forEach(input => {
+                    input.value = nom;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                });
             };
         }
     </script>
