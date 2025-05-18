@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
@@ -49,27 +50,27 @@ if nom_reconnu:
     else:
         st.error(f"❌ {nom_reconnu} n'est pas sur la liste.")
 
-# Bouton vocal
-st.markdown("## 🎙️ Cliquez sur le bouton pour parler")
+# Bouton vocal maintenu
+st.markdown("## 🎙️ Maintenez le bouton pour parler")
 
 components.html(
     """
-    <button onclick="startRecognition()" style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none;">
-        🎤 Parler
+    <button id="speakBtn" onmousedown="startRecognition()" onmouseup="stopRecognition()"
+        style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none;">
+        🎤 Maintenir pour parler
     </button>
-    <p id="result" style="font-size: 16px; font-weight: bold; color: #333;"></p>
 
     <script>
+        let recognition;
         function startRecognition() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = "fr-FR";
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
-
             recognition.start();
+
             recognition.onresult = function(event) {
                 const nom = event.results[0][0].transcript;
-                document.getElementById("result").innerText = "Nom reconnu : " + nom;
 
                 const iframe = window.parent.document;
                 const inputs = iframe.querySelectorAll('input[type="text"]');
@@ -79,7 +80,13 @@ components.html(
                 });
             };
         }
+
+        function stopRecognition() {
+            if (recognition) {
+                recognition.stop();
+            }
+        }
     </script>
     """,
-    height=200,
+    height=150,
 )
