@@ -37,13 +37,10 @@ else:
     st.info("💡 Veuillez d'abord téléverser une liste d'invités.")
     st.stop()
 
-# Zone cachée de déclenchement
-trigger = st.text_area("Invisible trigger", value="", key="trigger", label_visibility="collapsed")
-
 # Affichage du champ vocal
 nom_reconnu = st.text_input("🧠 Nom détecté :", key="nom_vocal")
 
-# Vérification automatique sur mise à jour
+# Vérification automatique quand le champ est rempli
 if st.session_state.nom_vocal:
     noms_bdd = df["Nom"].str.lower().str.strip()
     if st.session_state.nom_vocal.lower().strip() in noms_bdd.values:
@@ -51,13 +48,11 @@ if st.session_state.nom_vocal:
     else:
         st.error(f"❌ {st.session_state.nom_vocal} n'est pas sur la liste.")
 
-# Bouton vocal avec injection + trigger
-st.markdown("## 🎙️ Maintenez le bouton pour parler")
-
+# Bouton vocal avec mode "maintenir pour parler"
 components.html(
     """
     <button id="speakBtn" onmousedown="startRecognition()" onmouseup="stopRecognition()"
-        style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none;">
+        style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none; width: 100%;">
         🎤 Maintenir pour parler
     </button>
 
@@ -72,20 +67,16 @@ components.html(
 
             recognition.onresult = function(event) {
                 const nom = event.results[0][0].transcript;
-
+                
+                // Injection uniquement dans le champ texte
                 const iframe = window.parent.document;
                 const inputs = iframe.querySelectorAll('input[data-testid="stTextInput"]');
-                const triggers = iframe.querySelectorAll('textarea[data-testid="stTextArea"]');
-
-                inputs.forEach(input => {
-                    input.value = nom;
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-
-                triggers.forEach(trigger => {
-                    trigger.value = "triggered";
-                    trigger.dispatchEvent(new Event('input', { bubbles: true }));
-                });
+                
+                if (inputs.length > 0) {
+                    inputs[0].value = nom;
+                    const event = new Event('input', { bubbles: true });
+                    inputs[0].dispatchEvent(event);
+                }
             };
         }
 
@@ -96,5 +87,5 @@ components.html(
         }
     </script>
     """,
-    height=150,
+    height=100,
 )
