@@ -37,10 +37,22 @@ else:
     st.info("💡 Veuillez d'abord téléverser une liste d'invités.")
     st.stop()
 
-# Affichage du champ vocal
-nom_reconnu = st.text_input("🧠 Nom détecté :", key="nom_vocal")
+# Création d'une colonne pour le champ de texte et le bouton
+col1, col2 = st.columns([3, 1])
 
-# Vérification automatique quand le champ est rempli
+with col1:
+    nom_reconnu = st.text_input("🧠 Nom détecté :", key="nom_vocal", label_visibility="visible")
+
+with col2:
+    st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <button id="speakBtn" onmousedown="startRecognition()" onmouseup="stopRecognition()"
+        style="padding: 12px 15px; font-size: 16px; border-radius: 8px; background-color: #4CAF50; color: white; border: none; width: 100%; height: 53px;">
+        🎤 Maintenir
+    </button>
+    """, unsafe_allow_html=True)
+
+# Vérification automatique
 if st.session_state.nom_vocal:
     noms_bdd = df["Nom"].str.lower().str.strip()
     if st.session_state.nom_vocal.lower().strip() in noms_bdd.values:
@@ -48,14 +60,9 @@ if st.session_state.nom_vocal:
     else:
         st.error(f"❌ {st.session_state.nom_vocal} n'est pas sur la liste.")
 
-# Bouton vocal avec mode "maintenir pour parler"
+# JavaScript pour la reconnaissance vocale
 components.html(
     """
-    <button id="speakBtn" onmousedown="startRecognition()" onmouseup="stopRecognition()"
-        style="padding: 12px 25px; font-size: 18px; border-radius: 8px; background-color: #4CAF50; color: white; border: none; width: 100%;">
-        🎤 Maintenir pour parler
-    </button>
-
     <script>
         let recognition;
         function startRecognition() {
@@ -63,21 +70,18 @@ components.html(
             recognition.lang = "fr-FR";
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
-            recognition.start();
-
+            
             recognition.onresult = function(event) {
                 const nom = event.results[0][0].transcript;
-                
-                // Injection uniquement dans le champ texte
-                const iframe = window.parent.document;
-                const inputs = iframe.querySelectorAll('input[data-testid="stTextInput"]');
-                
-                if (inputs.length > 0) {
-                    inputs[0].value = nom;
+                const input = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+                if (input) {
+                    input.value = nom;
                     const event = new Event('input', { bubbles: true });
-                    inputs[0].dispatchEvent(event);
+                    input.dispatchEvent(event);
                 }
             };
+            
+            recognition.start();
         }
 
         function stopRecognition() {
@@ -87,5 +91,5 @@ components.html(
         }
     </script>
     """,
-    height=100,
+    height=0
 )
