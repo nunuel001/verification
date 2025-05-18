@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
@@ -25,11 +24,11 @@ if uploaded_file is not None:
             st.error("❌ Format de fichier non pris en charge.")
             st.stop()
 
-        st.success("✅ Liste chargée. Utilisez le micro pour vérifier les invités.")
-
         if 'Nom' not in df.columns:
             st.error("❌ Le fichier doit contenir une colonne intitulée exactement 'Nom'.")
             st.stop()
+
+        st.success("✅ Liste chargée. Utilisez le micro pour vérifier les invités.")
 
     except Exception as e:
         st.error(f"Erreur de lecture : {e}")
@@ -38,19 +37,21 @@ else:
     st.info("💡 Veuillez d'abord téléverser une liste d'invités.")
     st.stop()
 
+# Zone cachée de déclenchement
+trigger = st.text_area("Invisible trigger", value="", key="trigger", label_visibility="collapsed")
+
 # Affichage du champ vocal
-st.markdown("## 🧠 Nom détecté par la voix")
-nom_reconnu = st.text_input("Nom reconnu :", key="nom_vocal")
+nom_reconnu = st.text_input("🧠 Nom détecté :", key="nom_vocal")
 
-# Vérification automatique
-if nom_reconnu:
+# Vérification automatique sur mise à jour
+if st.session_state.nom_vocal:
     noms_bdd = df["Nom"].str.lower().str.strip()
-    if nom_reconnu.lower().strip() in noms_bdd.values:
-        st.success(f"✅ {nom_reconnu} est sur la liste des invités.")
+    if st.session_state.nom_vocal.lower().strip() in noms_bdd.values:
+        st.success(f"✅ {st.session_state.nom_vocal} est sur la liste des invités.")
     else:
-        st.error(f"❌ {nom_reconnu} n'est pas sur la liste.")
+        st.error(f"❌ {st.session_state.nom_vocal} n'est pas sur la liste.")
 
-# Bouton vocal maintenu
+# Bouton vocal avec injection + trigger
 st.markdown("## 🎙️ Maintenez le bouton pour parler")
 
 components.html(
@@ -73,10 +74,17 @@ components.html(
                 const nom = event.results[0][0].transcript;
 
                 const iframe = window.parent.document;
-                const inputs = iframe.querySelectorAll('input[type="text"]');
+                const inputs = iframe.querySelectorAll('input[data-testid="stTextInput"]');
+                const triggers = iframe.querySelectorAll('textarea[data-testid="stTextArea"]');
+
                 inputs.forEach(input => {
                     input.value = nom;
                     input.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+
+                triggers.forEach(trigger => {
+                    trigger.value = "triggered";
+                    trigger.dispatchEvent(new Event('input', { bubbles: true }));
                 });
             };
         }
