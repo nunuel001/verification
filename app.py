@@ -4,6 +4,10 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Vérification Invités", layout="centered")
 st.markdown("<h1 style='text-align: center;'>🎤 Vérification vocale des invités</h1>", unsafe_allow_html=True)
+# 📎 Lien Drive (format CSV exporté)
+st.markdown("### 🔗 Lien Google Sheets (format CSV publié)")
+sheet_url = st.text_input("Collez ici le lien du fichier Google Sheets (CSV partagé)", placeholder="https://docs.google.com/spreadsheets/d/...")
+
 
 # Chargement depuis Google Sheets (CSV public)
 sheet_url = st.secrets.get("SHEET_CSV_URL", "")
@@ -11,14 +15,18 @@ if not sheet_url:
     st.warning("Aucune URL de liste d'invités n'est configurée.")
     st.stop()
 
+if not sheet_url:
+    st.info("Veuillez coller un lien Google Sheets publié en CSV.")
+    st.stop()
+
 try:
     df = pd.read_csv(sheet_url)
     if 'Nom' not in df.columns or 'Prénoms' not in df.columns:
         st.error("❌ Le fichier doit contenir les colonnes 'Nom' et 'Prénoms'.")
         st.stop()
-    st.success("✅ Liste connectée à Google Drive.")
+    st.success("✅ Liste chargée depuis Google Sheets.")
 except Exception as e:
-    st.error(f"Erreur de lecture depuis Google Sheets : {e}")
+    st.error(f"Erreur lors du chargement du fichier : {e}")
     st.stop()
 
 # Zone d'entrée + bouton vocal
