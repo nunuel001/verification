@@ -1,15 +1,14 @@
+
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Vérification Invités", layout="centered")
 st.markdown("<h1 style='text-align: center;'>🎤 Vérification vocale des invités</h1>", unsafe_allow_html=True)
-# 📎 Lien Drive (format CSV exporté)
+
+# Lien CSV à coller
 st.markdown("### 🔗 Lien Google Sheets (format CSV publié)")
-sheet_url = st.text_input(
-    "Collez ici le lien du fichier Google Sheets (CSV partagé)",
-    placeholder="https://docs.google.com/spreadsheets/d/..."
-)
+sheet_url = st.text_input("Collez ici le lien du fichier Google Sheets (CSV partagé)", placeholder="https://docs.google.com/spreadsheets/d/...")
 
 if not sheet_url:
     st.info("Veuillez coller un lien Google Sheets publié en CSV.")
@@ -25,7 +24,6 @@ except Exception as e:
     st.error(f"Erreur lors du chargement du fichier : {e}")
     st.stop()
 
-
 # Zone d'entrée + bouton vocal
 col1, col2 = st.columns([3, 1])
 with col1:
@@ -39,7 +37,7 @@ with col2:
     </button>
     """, unsafe_allow_html=True)
 
-# Vérification par nom complet
+# Vérification
 if st.session_state.nom_vocal:
     nom_reconnu_complet = st.session_state.nom_vocal.strip().lower()
     df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).str.lower().str.strip()
@@ -47,8 +45,18 @@ if st.session_state.nom_vocal:
 
     if not match.empty:
         st.success(f"✅ {nom_reconnu_complet.title()} est sur la liste des invités.")
-        st.markdown("### 📋 Détails du profil :")
-        st.dataframe(match.drop(columns=["full_name"]))
+        info = match.iloc[0]
+        st.markdown("### 🪪 Carte d'identité de l'invité")
+        st.markdown(f"""
+        <div style='border:2px solid #4CAF50; border-radius:10px; padding:20px; background-color:#f9f9f9'>
+            <p><strong>👤 Nom :</strong> {info['Nom']}</p>
+            <p><strong>🧒 Prénoms :</strong> {info['Prénoms']}</p>
+            <p><strong>🏢 Entreprise :</strong> {info.get('Entreprise', 'Non spécifié')}</p>
+            <p><strong>🧰 Fonction :</strong> {info.get('Fonction', 'Non spécifié')}</p>
+            <p><strong>📞 Contact :</strong> {info.get('Contact téléph', 'Non spécifié')}</p>
+            <p><strong>📧 Email :</strong> {info.get('Email', 'Non spécifié')}</p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         st.error(f"❌ {nom_reconnu_complet.title()} n'est pas sur la liste.")
 
