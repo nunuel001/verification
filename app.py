@@ -16,7 +16,7 @@ if not sheet_url:
     st.stop()
 
 try:
-    df = pd.read_csv(sheet_url)
+    df = pd.read_csv(sheet_url, on_bad_lines='skip')
     if 'Nom' not in df.columns or 'Prénoms' not in df.columns:
         st.error("❌ Le fichier doit contenir les colonnes 'Nom' et 'Prénoms'.")
         st.stop()
