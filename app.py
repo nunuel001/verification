@@ -49,12 +49,14 @@ if st.session_state.nom_vocal:
         st.markdown("### 🪪 Carte d'identité de l'invité")
         st.markdown(f"""
         <div style='border:2px solid #4CAF50; border-radius:10px; padding:20px; background-color:#f9f9f9'>
-            <p><strong>👤 Nom :</strong> {info['Nom']}</p>
-            <p><strong>🧒 Prénoms :</strong> {info['Prénoms']}</p>
-            <p><strong>🏢 Entreprise :</strong> {info.get('Entreprise', 'Non spécifié')}</p>
-            <p><strong>🧰 Fonction :</strong> {info.get('Fonction', 'Non spécifié')}</p>
-            <p><strong>📞 Contact :</strong> {info.get('Contact téléph', 'Non spécifié')}</p>
-            <p><strong>📧 Email :</strong> {info.get('Email', 'Non spécifié')}</p>
+            <p><strong>Nom :</strong> {info['Nom']}</p>
+            <p><strong>Prénoms :</strong> {info['Prénoms']}</p>
+            <p><strong>Entreprise :</strong> {info.get('Entreprise', 'Non spécifié')}</p>
+            <p><strong>Fonction :</strong> {info.get('Fonction', 'Non spécifié')}</p>
+            <p><strong>Contact :</strong> {info.get('Contact téléph', 'Non spécifié')}</p>
+            <p><strong>Email :</strong> {info.get('Email', 'Non spécifié')}</p>
+            <p><strong>VVIP :</strong> {info.get('VVIP', 'Non')}</p>
+            <p><strong>Accompagné :</strong> {info.get('Seriez-vous accompagné ?', 'Non spécifié')}</p>
         </div>
         """, unsafe_allow_html=True)
     else:
