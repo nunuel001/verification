@@ -1,4 +1,6 @@
-
+import gspread
+from google.oauth2.service_account import Credentials
+import re
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
@@ -14,15 +16,25 @@ if not sheet_url:
     st.info("Veuillez coller un lien Google Sheets publié en CSV.")
     st.stop()
 
-try:
-    df = pd.read_csv(sheet_url, on_bad_lines='skip')
-    if 'Nom' not in df.columns or 'Prénoms' not in df.columns:
-        st.error("❌ Le fichier doit contenir les colonnes 'Nom' et 'Prénoms'.")
-        st.stop()
-    st.success("✅ Liste chargée depuis Google Sheets.")
-except Exception as e:
-    st.error(f"Erreur lors du chargement du fichier : {e}")
+# Authentification Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
+client = gspread.authorize(creds)
+
+# Extraire ID du Google Sheets depuis l'URL collée
+sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", sheet_url)
+if not sheet_id_match:
+    st.error("Lien Google Sheets invalide.")
     st.stop()
+
+sheet_id = sheet_id_match.group(1)
+sheet = client.open_by_key(sheet_id)
+worksheet = sheet.sheet1  # ou .worksheet("Form_Responses1") si besoin
+
+# Charger la feuille en DataFrame
+data = worksheet.get_all_records()
+df = pd.DataFrame(data)
+
 
 # Zone d'entrée + bouton vocal
 col1, col2 = st.columns([3, 1])
@@ -61,6 +73,11 @@ if st.session_state.nom_vocal:
         """, unsafe_allow_html=True)
     else:
         st.error(f"❌ {nom_reconnu_complet.title()} n'est pas sur la liste.")
+    # ✅ Mise à jour du statut "Vérifié ✅" dans la feuille
+row_index = match.index[0] + 2  # +2 à cause de l’en-tête (gspread est 1-based)
+col_statut = df.columns.get_loc("Statut") + 1  # +1 pour gspread
+worksheet.update_cell(row_index, col_statut, "Vérifié ✅")
+
 
 # JS : reconnaissance vocale
 components.html(
