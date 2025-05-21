@@ -42,7 +42,7 @@ with col2:
 # Vérification par nom complet
 if st.session_state.nom_vocal:
     nom_reconnu_complet = st.session_state.nom_vocal.strip().lower()
-    df['full_name'] = (df['Prénoms'].astype(str) + " " + df['Nom'].astype(str)).str.lower().str.strip()
+    df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).str.lower().str.strip()
     match = df[df['full_name'] == nom_reconnu_complet]
 
     if not match.empty:
