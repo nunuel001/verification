@@ -4,6 +4,15 @@ import re
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
+import unicodedata
+
+def normalize_string(s):
+    if not isinstance(s, str):
+        return ""
+    s = s.strip().lower()
+    s = unicodedata.normalize('NFD', s)
+    s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')  # retire les accents
+    return s
 
 st.set_page_config(page_title="Vérification Invités", layout="centered")
 st.markdown("<h1 style='text-align: center;'>🎤 Vérification vocale des invités</h1>", unsafe_allow_html=True)
@@ -52,8 +61,8 @@ with col2:
     """, unsafe_allow_html=True)
 
 if st.session_state.nom_vocal:
-    nom_reconnu_complet = st.session_state.nom_vocal.strip().lower()
-    df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).str.lower().str.strip()
+    nom_reconnu_complet = normalize_string(st.session_state.nom_vocal)
+    df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).apply(normalize_string)
     match = df[df['full_name'] == nom_reconnu_complet]
 
     if not match.empty:
