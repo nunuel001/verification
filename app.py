@@ -51,36 +51,38 @@ with col2:
     </button>
     """, unsafe_allow_html=True)
 
-# Vérification
 if st.session_state.nom_vocal:
     nom_reconnu_complet = st.session_state.nom_vocal.strip().lower()
     df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).str.lower().str.strip()
     match = df[df['full_name'] == nom_reconnu_complet]
 
-if not match.empty:
-    st.success(f"✅ {nom_reconnu_complet.title()} est sur la liste des invités.")
-    info = match.iloc[0]
-    st.markdown("### 🪪 Carte d'identité de l'invité")
-    st.markdown(f"""
-    <div style='border:2px solid #4CAF50; border-radius:10px; padding:20px; background-color:#f9f9f9'>
-        <p><strong>Nom :</strong> {info['Nom']}</p>
-        <p><strong>Prénoms :</strong> {info['Prénoms']}</p>
-        <p><strong>Entreprise :</strong> {info.get('Entreprise', 'Non spécifié')}</p>
-        <p><strong>Fonction :</strong> {info.get('Fonction', 'Non spécifié')}</p>
-        <p><strong>Contact :</strong> {info.get('Contact téléph', 'Non spécifié')}</p>
-        <p><strong>Email :</strong> {info.get('Email', 'Non spécifié')}</p>
-        <p><strong>VVIP :</strong> {info.get('VVIP', 'Non')}</p>
-        <p><strong>Accompagné :</strong> {info.get('Seriez-vous accompagné ?', 'Non spécifié')}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    if not match.empty:
+        st.success(f"✅ {nom_reconnu_complet.title()} est sur la liste des invités.")
+        info = match.iloc[0]
+        st.markdown("### 🪪 Carte d'identité de l'invité")
+        st.markdown(f"""
+        <div style='border:2px solid #4CAF50; border-radius:10px; padding:20px; background-color:#f9f9f9'>
+            <p><strong>Nom :</strong> {info['Nom']}</p>
+            <p><strong>Prénoms :</strong> {info['Prénoms']}</p>
+            <p><strong>Entreprise :</strong> {info.get('Entreprise', 'Non spécifié')}</p>
+            <p><strong>Fonction :</strong> {info.get('Fonction', 'Non spécifié')}</p>
+            <p><strong>Contact :</strong> {info.get('Contact téléph', 'Non spécifié')}</p>
+            <p><strong>Email :</strong> {info.get('Email', 'Non spécifié')}</p>
+            <p><strong>VVIP :</strong> {info.get('VVIP', 'Non')}</p>
+            <p><strong>Accompagné :</strong> {info.get('Seriez-vous accompagné ?', 'Non spécifié')}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ✅ Mise à jour du statut "Vérifié ✅"
-    row_index = match.index[0] + 2
-    col_statut = df.columns.get_loc("Statut") + 1
-    worksheet.update_cell(row_index, col_statut, "Vérifié ✅")
+        # Mise à jour du statut si la colonne existe
+        if "Statut" in df.columns:
+            row_index = match.index[0] + 2
+            col_statut = df.columns.get_loc("Statut") + 1
+            worksheet.update_cell(row_index, col_statut, "Vérifié ✅")
+        else:
+            st.warning("Colonne 'Statut' absente. Aucune mise à jour faite.")
 
-else:
-    st.error(f"❌ {nom_reconnu_complet.title()} n'est pas sur la liste.")
+    else:
+        st.error(f"❌ {nom_reconnu_complet.title()} n'est pas sur la liste.")
 
 
 
