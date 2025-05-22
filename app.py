@@ -18,7 +18,7 @@ if not sheet_url:
 
 # Authentification Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
+creds = Credentials.from_service_account_file("google_service_account", scopes=scope)
 client = gspread.authorize(creds)
 
 # Extraire ID du Google Sheets depuis l'URL collée
