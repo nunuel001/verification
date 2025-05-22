@@ -38,7 +38,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Titre
-st.markdown("<h1 style='text-align: center; color: #2c3e50; font-size: 2.5rem;'>🙏 Akwaba</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #2c3e50; font-size: 2.5rem;'>Akwaba</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border-top: 2px solid #4CAF50; margin: 1.5rem 0;'>", unsafe_allow_html=True)
 
 # Lien Google Sheets
