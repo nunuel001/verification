@@ -57,7 +57,7 @@ if st.session_state.nom_vocal:
     df['full_name'] = (df['Nom'].astype(str) + " " + df['Prénoms'].astype(str)).str.lower().str.strip()
     match = df[df['full_name'] == nom_reconnu_complet]
 
-    if not match.empty:
+if not match.empty:
     st.success(f"✅ {nom_reconnu_complet.title()} est sur la liste des invités.")
     info = match.iloc[0]
     st.markdown("### 🪪 Carte d'identité de l'invité")
